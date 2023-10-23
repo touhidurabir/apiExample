@@ -17,6 +17,8 @@
 namespace APP\plugins\generic\apiExample;
 
 use APP\plugins\generic\apiExample\api\v1\users\PKPOverriddenUserController;
+use PKP\core\PKPBaseController;
+use PKP\handler\APIHandler;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 
@@ -51,11 +53,8 @@ class ApiExamplePlugin extends GenericPlugin
 
     public function addRoute(): void
     {
-        Hook::add('APIHandler::endpoints', function(string $hookName, array $args): bool {
+        Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
 
-            $apiController = & $args[0]; /** @var \PKP\core\PKPBaseController $apiController */
-            $apiHandler = $args[1]; /** @var \PKP\handler\APIHandler $apiHandler */
-            
             $apiController = new PKPOverriddenUserController();
             
             return false;
