@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file
+ * @file plugins/generic/apiExample/api/v1/users/PluginTestController.php
  *
  * Copyright (c) 2023 Simon Fraser University
  * Copyright (c) 2023 John Willinsky
@@ -9,9 +9,9 @@
  *
  * @class PluginTestController
  *
- * @ingroup 
+ * @ingroup plugins_generic_apiExample_api_v1_tests
  *
- * @brief 
+ * @brief Simple exmaple of API controller on plugin level to introduce new API endpoints
  *
  */
 
@@ -74,7 +74,8 @@ class PluginTestController extends PKPBaseController
     }
 
     /**
-     * Get a single user
+     * A simple plugin level api endpoint can be access as 
+     * http://BASE_URL/index.php/CONTEXT_PATH/plugins/generic/apiExample/api/v1/tests
      */
     public function get(Request $request): JsonResponse
     {

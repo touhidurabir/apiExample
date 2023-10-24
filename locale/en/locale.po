@@ -1,0 +1,18 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-30T15:49:00-07:00\n"
+"PO-Revision-Date: 2023-10-30T15:49:00-07:00\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "plugins.generic.apiExample.displayName"
+msgstr "Plugin API Example"
+
+msgid "plugins.generic.apiExample.description"
+msgstr "Sample test plugin to demonostrate the implementation of new API endpoints or over ride existing API endpoints from a plugin."
