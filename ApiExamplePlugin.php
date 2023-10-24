@@ -11,7 +11,10 @@
  *
  * @ingroup plugins_generic_apiExample
  *
- * @brief A simple example plugin to demonstrate 
+ * @brief   A simple example plugin to demonstrate how to implement API controller 
+ *          or extends an existing api endpoint at plugin level so that plugins
+ *          can have own api endpoints to tap into the existing collection of
+ *          endpoints. 
  */
 
 namespace APP\plugins\generic\apiExample;
@@ -46,11 +49,15 @@ class ApiExamplePlugin extends GenericPlugin
             return $success;
         }
         
+        // add/inject new routes/endpoints to an existing collection/list of api end points
         $this->addRoute();
 
         return $success;
     }
 
+    /**
+     * Add/override new api endpoints to existing list of api endpoints
+     */
     public function addRoute(): void
     {
         Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
@@ -66,7 +73,7 @@ class ApiExamplePlugin extends GenericPlugin
      */
     public function getDisplayName()
     {
-        return 'Plugin API Example';
+        return __('plugins.generic.apiExample.displayName');
     }
 
     /**
@@ -74,7 +81,7 @@ class ApiExamplePlugin extends GenericPlugin
      */
     public function getDescription()
     {
-        return 'Test plugin to demonostrate the usage of API from a plugin.';
+        return __('plugins.generic.apiExample.description');
     }
 
 }
