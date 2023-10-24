@@ -21,11 +21,11 @@ After the installation completed successfully, make sure to enable the plugin fo
 
 The plugin iteself comes with 2 sample API endpoints . One that introduce a new api endpont at the plugin level and another that tap into the exsting collectio of api endpoint for an entity .
 
-### New API Endpoint : http://BASE_URL/index.php/CONTEXT_PATH/plugins/generic/apiExample/api/v1/tests
+#### New API Endpoint : http://BASE_URL/index.php/CONTEXT_PATH/plugins/generic/apiExample/api/v1/tests
 
 The above one introduce a new API endpoint which at the plugin level .
 
-### Override into Existing API : http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add
+#### Override into Existing API : http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add
 
 The above which been injected to for the `user` entity at the run time using the [Hook](https://docs.pkp.sfu.ca/dev/documentation/en/utilities-hooks) .
 
