@@ -49,6 +49,29 @@ Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseCont
 });
 ```
 
+Another way to add or override api routes to an existing entity is to use the closure based appraoch to add a route directly in the route collection. 
+
+```php
+Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
+
+    $apiHandler->addRoute(
+        'GET/POST/PUT/PATCH/DELETE', // HTTP Request METHOD
+        'some/route/path/to/add',   // The route uri
+        function (IlluminateRequest $request): JsonResponse { // The closure/callback of route action handler when the route url got hit
+            return response()->json([
+                'message' => 'A new route added successfully',
+            ], Response::HTTP_OK);
+        },
+        'name.of.the.route', // Name of the route
+        [Role::ROLE_ID_..., Role::ROLE_ID_..., ...] // The route accessable role from `Role::ROLE_ID_*`
+    );
+    
+    return false;
+});
+```
+
+> NOTE : Above approach to inject route dynamically through the `APIHandler::addRoute` should be used for simple route implementation that handle very simple and limited action logic. For broad and complex route action, better to use the controller based approach.
+
 Also see the same implementation in [Plugin Code](https://github.com/touhidurabir/apiExample/blob/main/api/v1/users/PKPOverriddenUserController.php) .
 
 

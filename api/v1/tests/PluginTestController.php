@@ -76,6 +76,16 @@ class PluginTestController extends PKPBaseController
     /**
      * A simple plugin level api endpoint can be access as 
      * http://BASE_URL/index.php/CONTEXT_PATH/plugins/generic/apiExample/api/v1/tests
+     * 
+     * To generate the API URL of a plugin : 
+     * 
+     *  Application::get()->getRequest()->getRouter()->url(
+     *      request: Application::get()->getRequest(),
+     *      newContext: Application::get()->getRequest()->getContext()?->getPath(),
+     *      endpoint: 'tests',
+     *      pluginOptions: ['generic', 'apiExample']
+     *  )
+     * 
      */
     public function get(Request $request): JsonResponse
     {

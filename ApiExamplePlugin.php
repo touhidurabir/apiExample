@@ -20,10 +20,14 @@
 namespace APP\plugins\generic\apiExample;
 
 use APP\plugins\generic\apiExample\api\v1\users\PKPOverriddenUserController;
+use Illuminate\Http\Request as IlluminateRequest;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use PKP\core\PKPBaseController;
 use PKP\handler\APIHandler;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
+use PKP\security\Role;
 
 class ApiExamplePlugin extends GenericPlugin
 {
@@ -61,7 +65,29 @@ class ApiExamplePlugin extends GenericPlugin
     public function addRoute(): void
     {
         Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
-
+            
+            // This allow to add a route on fly without defining a api controller
+            // Through this allow quick add/modify routes, it's better to use
+            // controller based appraoch which is more structured and understandable
+            $apiHandler->addRoute(
+                'GET',
+                'testing/routes/add/onfly',
+                function (IlluminateRequest $request): JsonResponse {
+                    return response()->json([
+                        'message' => 'A new route added successfully on fly',
+                    ], Response::HTTP_OK);
+                },
+                'test.onfly',
+                [
+                    Role::ROLE_ID_SITE_ADMIN,
+                    Role::ROLE_ID_MANAGER,
+                    Role::ROLE_ID_SUB_EDITOR,
+                ]
+            );
+            
+            // This allow to update the api controller directly with an overrided controller 
+            // that extends a core controller where one or more routes can be added or 
+            // multiple existing routes can be modified
             $apiController = new PKPOverriddenUserController();
             
             return false;
