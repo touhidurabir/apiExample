@@ -1,8 +1,8 @@
 # OJS/OMP/OPS API example at plugin level
 
-Sample test plugin for OJS/OMP/OPS to demonostrate the implementation of new API endpoints or override existing API endpoints from a plugin.
+Sample test plugin for OJS/OMP/OPS to demonostrate the implementation of add a new API endpoints or override existing API endpoints from a plugin for an entity.
 
-This sample test plugin aims to provide developer an example guide on how to implement API endpoints at plugin level. 
+This sample test plugin aims to provide developer an example guide on how to add/modify API endpoints from a plugin
 
 This will be only available and possile if the issue [pkp/pkp-lib#9434](https://github.com/pkp/pkp-lib/issues/9434) get merged into the core. 
 
@@ -19,20 +19,17 @@ After the installation completed successfully, make sure to enable the plugin fo
 
 ## Testing Plugins API Endpoints
 
-The plugin iteself comes with 2 sample API endpoints . One that introduce a new api endpont at the plugin level and another that tap into the exsting collectio of api endpoint for an entity .
+The plugin iteself comes with 2 sample API endpoints which injected to existing entity. One added through overriding API Controller and another by passing api route details into the `APIHandler::addRoute` method . 
 
-#### New API Endpoint : http://BASE_URL/index.php/CONTEXT_PATH/plugins/generic/apiExample/api/v1/tests
+1. http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add
+2. http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add/onfly
 
-The above one introduce a new API endpoint which at the plugin level .
-
-#### Override into Existing API : http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add
-
-The above which been injected to for the `user` entity at the run time using the [Hook](https://docs.pkp.sfu.ca/dev/documentation/en/utilities-hooks) .
+it uses the [Hook](https://docs.pkp.sfu.ca/dev/documentation/en/utilities-hooks) mechanism to inject api routes at run time.
 
 
 ## How to implelemt new API endpoint or Override existing one
 
-Implementing a new API endpoint at the plugin level is the same process of implemeting a new API endpoint in the core application . See the implementation for the [`users`](https://github.com/pkp/pkp-lib/blob/main/api/v1/users/PKPUserController.php) entity for [`OJS`](https://github.com/pkp/ojs/blob/main/api/v1/users/index.php) . Also see the same implementation in [Plugin Code](https://github.com/touhidurabir/apiExample/tree/main/api/v1/tests) .
+Implementing a new API endpoint from is the same process of implemeting a new API endpoint in the core application . See the implementation for the [`users`](https://github.com/pkp/pkp-lib/blob/main/api/v1/users/PKPUserController.php) entity for [`OJS`](https://github.com/pkp/ojs/blob/main/api/v1/users/index.php) .
 
 To override a existing API endpoint, need to tap into the `Hook` provided by core service . The API endpoint hook have the following structure as 
 ```
