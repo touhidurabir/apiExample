@@ -19,36 +19,30 @@ After the installation completed successfully, make sure to enable the plugin fo
 
 ## Testing Plugins API Endpoints
 
-The plugin iteself comes with 2 sample API endpoints which injected to existing entity. One added through overriding API Controller and another by passing api route details into the `APIHandler::addRoute` method . 
+The plugin iteself comes with a sample API endpoints which injected to existing entity `users` by passing api route details into the `APIHandler::addRoute` method as follow :
 
-1. http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add
-2. http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add/onfly
+`http://BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add/onfly`
 
 it uses the [Hook](https://docs.pkp.sfu.ca/dev/documentation/en/utilities-hooks) mechanism to inject api routes at run time.
 
 
 ## How to implelemt new API endpoint or Override existing one
 
-Implementing a new API endpoint from is the same process of implemeting a new API endpoint in the core application . See the implementation for the [`users`](https://github.com/pkp/pkp-lib/blob/main/api/v1/users/PKPUserController.php) entity for [`OJS`](https://github.com/pkp/ojs/blob/main/api/v1/users/index.php) .
-
-To override a existing API endpoint, need to tap into the `Hook` provided by core service . The API endpoint hook have the following structure as 
+To add a new API endpoint/route, need to tap into the `Hook` provided by core service . The API endpoint hook have the following structure as 
 ```
 APIHandler::endpoints::API_ENTITY
 ```
-For example, to tap into and override the API endpoints for `users` entity, need to apply a new `API Controller` that extends the core [`User API Controller`](https://github.com/pkp/pkp-lib/blob/main/api/v1/users/PKPUserController.php) and override the passed API controller in following manner 
+
+For example, to tap into and override the API endpoints for `users` entity, need to use the closure based appraoch to add a new route directly in the existing route collection. 
 
 ```php
-Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
+use PKP\core\PKPBaseController;
+use PKP\handler\APIHandler;
+use PKP\plugins\Hook;
+use Illuminate\Http\Request as IlluminateRequest;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 
-    $apiController = new PKPOverriddenUserController();
-    
-    return false;
-});
-```
-
-Another way to add or override api routes to an existing entity is to use the closure based appraoch to add a route directly in the route collection. 
-
-```php
 Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
 
     $apiHandler->addRoute(
@@ -63,14 +57,9 @@ Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseCont
         [Role::ROLE_ID_..., Role::ROLE_ID_..., ...] // The route accessable role from `Role::ROLE_ID_*`
     );
     
-    return false;
+    return Hook::CONTINUE;
 });
 ```
-
-> NOTE : Above approach to inject route dynamically through the `APIHandler::addRoute` should be used for simple route implementation that handle very simple and limited action logic. For broad and complex route action, better to use the controller based approach.
-
-Also see the same implementation in [Plugin Code](https://github.com/touhidurabir/apiExample/blob/main/api/v1/users/PKPOverriddenUserController.php) .
-
 
 ## License
 [MIT](./LICENSE.md)

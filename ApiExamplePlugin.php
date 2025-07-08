@@ -19,7 +19,6 @@
 
 namespace APP\plugins\generic\apiExample;
 
-use APP\plugins\generic\apiExample\api\v1\users\PKPOverriddenUserController;
 use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
@@ -64,7 +63,7 @@ class ApiExamplePlugin extends GenericPlugin
      */
     public function addRoute(): void
     {
-        Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
+        Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool {
             
             // This allow to add a route on fly without defining a api controller
             // Through this allow quick add/modify routes, it's better to use
@@ -85,12 +84,7 @@ class ApiExamplePlugin extends GenericPlugin
                 ]
             );
             
-            // This allow to update the api controller directly with an overrided controller 
-            // that extends a core controller where one or more routes can be added or 
-            // multiple existing routes can be modified
-            $apiController = new PKPOverriddenUserController();
-            
-            return false;
+            return Hook::CONTINUE;
         });
     }
 
