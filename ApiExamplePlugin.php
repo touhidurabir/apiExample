@@ -3,13 +3,11 @@
 /**
  * @file plugins/generic/apiExample/ApiExamplePlugin.php
  *
- * Copyright (c) 2023 Simon Fraser University
- * Copyright (c) 2023 John Willinsky
+ * Copyright (c) 2025 Simon Fraser University
+ * Copyright (c) 2025 John Willinsky
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
  * @class ApiExamplePlugin
- *
- * @ingroup plugins_generic_apiExample
  *
  * @brief   A simple example plugin to demonstrate how to implement API controller 
  *          or extends an existing api endpoint at plugin level so that plugins
@@ -22,10 +20,12 @@ namespace APP\plugins\generic\apiExample;
 use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
+use PKP\core\PKPRequest;
 use PKP\core\PKPBaseController;
 use PKP\handler\APIHandler;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
+use PKP\plugins\interfaces\HasAuthorizationPolicy;
 use PKP\security\Role;
 
 class ApiExamplePlugin extends GenericPlugin
@@ -81,7 +81,17 @@ class ApiExamplePlugin extends GenericPlugin
                     Role::ROLE_ID_SITE_ADMIN,
                     Role::ROLE_ID_MANAGER,
                     Role::ROLE_ID_SUB_EDITOR,
-                ]
+                ],
+                // Optional param to define a set to Authorization Policies for route
+                // new class implements HasAuthorizationPolicy
+                // {
+                //     public function getPolicies(PKPRequest $request, array &$args, array $roleAssignments): array
+                //     {
+                //         return [
+                //             new \PKP\security\authorization\ContextAccessPolicy($request, $roleAssignments)
+                //         ];
+                //     }
+                // }
             );
             
             return Hook::CONTINUE;

@@ -1,10 +1,6 @@
 # OJS/OMP/OPS API example at plugin level
 
-Sample test plugin for OJS/OMP/OPS to demonostrate the implementation of add a new API endpoints or override existing API endpoints from a plugin for an entity.
-
-This sample test plugin aims to provide developer an example guide on how to add/modify API endpoints from a plugin
-
-This will be only available and possile if the issue [pkp/pkp-lib#9434](https://github.com/pkp/pkp-lib/issues/9434) get merged into the core. 
+Sample test plugin for OJS/OMP/OPS to demonostrate the implementation of adding a new API endpoints through a plugin for an entity.
 
 ## Installation
 
@@ -43,7 +39,7 @@ use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 
-Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController &$apiController, APIHandler $apiHandler): bool {
+Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool {
 
     $apiHandler->addRoute(
         'GET/POST/PUT/PATCH/DELETE', // HTTP Request METHOD
@@ -60,6 +56,36 @@ Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseCont
     return Hook::CONTINUE;
 });
 ```
+
+It is also possible to define a set of authorization policies for a route register from a plugin. Considering above example, we can pass a optional final param which must implements the contract `PKP\plugins\interfaces\HasAuthorizationPolicy` as follow 
+
+```php
+use PKP\core\PKPRequest;
+use PKP\plugins\interfaces\HasAuthorizationPolicy;
+
+Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool {
+
+    $apiHandler->addRoute(
+        // all the required params as above ...
+
+        // Optional param to define a set to Authorization Policies for route
+        new class implements HasAuthorizationPolicy
+        {
+            public function getPolicies(PKPRequest $request, array &$args, array $roleAssignments): array
+            {
+                return [
+                    // new \PKP\security\authorization\ContextAccessPolicy($request, $roleAssignments),
+                    // more policies
+                ];
+            }
+        }
+    );
+    
+    return Hook::CONTINUE;
+});
+```
+
+Note that in the return array from method `getPolicies` must contains the instances of only `PKP\security\authorization\AuthorizationPolicy` and `PKP\security\authorization\PolicySet`, as exception will be thrown for any other instances type .
 
 ## License
 [MIT](./LICENSE.md)
