@@ -17,9 +17,11 @@
 
 namespace APP\plugins\generic\apiExample;
 
+use APP\plugins\generic\apiExample\CustomApiController;
 use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
+use PKP\core\APIRouter;
 use PKP\core\PKPRequest;
 use PKP\core\PKPBaseController;
 use PKP\handler\APIHandler;
@@ -55,6 +57,9 @@ class ApiExamplePlugin extends GenericPlugin
         // add/inject new routes/endpoints to an existing collection/list of api end points
         $this->addRoute();
 
+        // Add a very custom plugin level api end points which are not associated with any entity
+        $this->registerPluginCustomRoutes();
+
         return $success;
     }
 
@@ -65,9 +70,8 @@ class ApiExamplePlugin extends GenericPlugin
     {
         Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool {
             
-            // This allow to add a route on fly without defining a api controller
-            // Through this allow quick add/modify routes, it's better to use
-            // controller based appraoch which is more structured and understandable
+            // This allow to add a API route on to the existing entity `users` end point as
+            // BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add/onfly
             $apiHandler->addRoute(
                 'GET',
                 'testing/routes/add/onfly',
@@ -95,6 +99,40 @@ class ApiExamplePlugin extends GenericPlugin
             );
             
             return Hook::CONTINUE;
+        });
+    }
+
+    /**
+     * Add a new API endpoint which not associated with any entity
+     */
+    public function registerPluginCustomRoutes(): void
+    {
+        // Allow to have a custom API endpoint as 
+        // BASE_URL/index.php/CONTEXT_PATH/api/v1/custom-plugin-path/
+        Hook::add('Dispatcher::dispatch', function (string $hookName, array $args): bool {
+            $request = $args[0]; /** @var PKPRequest $request */
+            $router = $request->getRouter();
+
+            if (!$router instanceof APIRouter) {
+                return Hook::CONTINUE;
+            }
+
+            $requestPath = $request->getRequestPath();
+            
+            if (!str_contains($requestPath, 'custom-plugin-path')) {
+                return Hook::CONTINUE;
+            }
+
+            $controller = new CustomApiController;
+            $handler = new APIHandler($controller);
+
+            // we can get all the registered routes at this point as if need to run any more extra checks
+            // app('router')->getRoutes();
+
+            $router->setHandler($handler);
+            $handler->runRoutes();
+
+            return Hook::ABORT;
         });
     }
 
