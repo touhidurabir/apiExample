@@ -17,6 +17,7 @@
 
 namespace APP\plugins\generic\apiExample;
 
+use APP\core\Application;
 use APP\plugins\generic\apiExample\CustomApiController;
 use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Http\Response;
@@ -59,8 +60,22 @@ class ApiExamplePlugin extends GenericPlugin
 
         // Add a very custom plugin level api end points which are not associated with any entity
         $this->registerPluginCustomRoutes();
+        
+        // Alternative appraoch to use a new hook to directly inject API controller with auto cehck of path collision
+        // $this->registerPluginApiControllers();
 
         return $success;
+    }
+
+    /**
+     * This plugin can be used site-wide or in a specific context. The
+     * isSitePlugin check is used to grant access to different users, so this
+     * plugin must return true only if the user is currently in the site-wide
+     * context.
+     */
+    public function isSitePlugin()
+    {
+        return !Application::get()->getRequest()->getContext();
     }
 
     /**
@@ -133,6 +148,29 @@ class ApiExamplePlugin extends GenericPlugin
             $handler->runRoutes();
 
             return Hook::ABORT;
+        });
+    }
+
+    /**
+     * Add a new API endpoint which not associated with any entity
+     * 
+     * This allow to register multiple API controller at a time with checks that no plugin api has
+     * extact same handler path of `PKPBaseController::getHandlerPath()` to avoid same path collision
+     */
+    public function registerPluginApiControllers(): void
+    {
+        Hook::add('APIHandler::endpoints::plugin', function (string $hookName, APIRouter $apiRouter): bool {
+            $apiRouter->registerPluginApiControllers([
+                // Allow to have a custom API endpoint as 
+                // BASE_URL/index.php/CONTEXT_PATH/api/v1/custom-plugin-path/
+                new CustomApiController,
+
+                // Allow to have a custom ADMIN API endpoint as 
+                // BASE_URL/index.php/index/api/v1/custom-admin-plugin-path/
+                new CustomAdminApiController,
+            ]);
+
+            return Hook::CONTINUE;
         });
     }
 
