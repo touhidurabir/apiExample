@@ -59,17 +59,20 @@ class ApiExamplePlugin extends GenericPlugin
         $this->addRoute();
 
         // Add a very custom plugin level api end points which are not associated with any entity
-        $this->registerPluginCustomRoutes();
+        // using the `Dispatcher::dispatch` hook
+        // $this->registerPluginCustomRoutes();
         
         // Alternative appraoch to use a new hook to directly inject API controller with auto cehck of path collision
-        // $this->registerPluginApiControllers();
+        // using `APIHandler::endpoints::plugin`
+        $this->registerPluginApiControllers();
 
         return $success;
     }
 
     /**
-     * This plugin can be used site-wide or in a specific context. The
-     * isSitePlugin check is used to grant access to different users, so this
+     * This plugin can be used site-wide or in a specific context.
+     * 
+     * The isSitePlugin check is used to grant access to different users, so this
      * plugin must return true only if the user is currently in the site-wide
      * context.
      */
