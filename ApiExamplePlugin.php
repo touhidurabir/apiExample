@@ -62,8 +62,8 @@ class ApiExamplePlugin extends GenericPlugin
         // using the `Dispatcher::dispatch` hook
         // $this->registerPluginCustomRoutes();
         
-        // Alternative appraoch to use a new hook to directly inject API controller with auto cehck of path collision
-        // using `APIHandler::endpoints::plugin`
+        // Alternative approach to use a new hook to directly inject API controller with auto
+        // cehck of path collision using `APIHandler::endpoints::plugin`
         $this->registerPluginApiControllers();
 
         return $success;
@@ -122,6 +122,19 @@ class ApiExamplePlugin extends GenericPlugin
 
     /**
      * Add a new API endpoint which not associated with any entity
+     * 
+     * This is a more manual approach using the `Dispatcher::dispatch` hook to register
+     * a completely custom api end point at plugin level. 
+     * 
+     * However, using this approach is not recommended as there is no check for path collision with
+     * existing api end points. It's better to use `APIHandler::endpoints::plugin` hook to register
+     * multiple api controllers with path collision checks.
+     * 
+     * Also as the hook `Dispatcher::dispatch` is being called before the context schema is loaded,
+     * so if the api controller being registered needs to access context schema or any context
+     * specific data, then it may lead to unexpected results.
+     * 
+     * If must use this approach, take utmost care of these aspects with proper checks and tests.
      */
     public function registerPluginCustomRoutes(): void
     {

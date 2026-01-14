@@ -87,5 +87,32 @@ Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseCont
 
 Note that in the return array from method `getPolicies` must contains the instances of only `PKP\security\authorization\AuthorizationPolicy` and `PKP\security\authorization\PolicySet`, as exception will be thrown for any other instances type .
 
+It is also possible for plugins to have it's very own custom api routes instead of appendings new ones
+to the currently existing paths. This can be accomplished using the hook **APIHandler::endpoints::plugin** in the following manner
+```php
+use PKP\plugins\Hook;
+use PKP\core\APIRouter;
+
+Hook::add('APIHandler::endpoints::plugin', function (string $hookName, APIRouter $apiRouter): bool {
+    $apiRouter->registerPluginApiControllers([
+        // Allow to have a custom API endpoint as 
+        // BASE_URL/index.php/CONTEXT_PATH/api/v1/custom-plugin-path/
+        new CustomApiController,
+
+        // Allow to have a custom ADMIN API endpoint as 
+        // BASE_URL/index.php/index/api/v1/custom-admin-plugin-path/
+        new CustomAdminApiController,
+    ]);
+
+    return Hook::CONTINUE;
+});
+```
+Here the method `APIRouter::registerPluginApiControllers` will take array of api controller instance
+where each api controller instances must be an instance of `PKP\core\PKPBaseController`.
+
+Important point to note that `APIRouter::registerPluginApiControllers` will internally run a check against already registered plugin's custom api controller/endpoints to verify the uniqueness the
+given path prefix and will throw exception is there is already exists one. This is done to prevent
+the plugin custom API path collision and leaking one plugins response/data to another. 
+
 ## License
 [MIT](./LICENSE.md)
