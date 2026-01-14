@@ -17,9 +17,12 @@
 
 namespace APP\plugins\generic\apiExample;
 
+use APP\core\Application;
+use APP\plugins\generic\apiExample\CustomApiController;
 use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
+use PKP\core\APIRouter;
 use PKP\core\PKPRequest;
 use PKP\core\PKPBaseController;
 use PKP\handler\APIHandler;
@@ -55,7 +58,27 @@ class ApiExamplePlugin extends GenericPlugin
         // add/inject new routes/endpoints to an existing collection/list of api end points
         $this->addRoute();
 
+        // Add a very custom plugin level api end points which are not associated with any entity
+        // using the `Dispatcher::dispatch` hook
+        // $this->registerPluginCustomRoutes();
+        
+        // Alternative approach to use a new hook to directly inject API controller with auto
+        // cehck of path collision using `APIHandler::endpoints::plugin`
+        $this->registerPluginApiControllers();
+
         return $success;
+    }
+
+    /**
+     * This plugin can be used site-wide or in a specific context.
+     * 
+     * The isSitePlugin check is used to grant access to different users, so this
+     * plugin must return true only if the user is currently in the site-wide
+     * context.
+     */
+    public function isSitePlugin()
+    {
+        return !Application::get()->getRequest()->getContext();
     }
 
     /**
@@ -65,9 +88,8 @@ class ApiExamplePlugin extends GenericPlugin
     {
         Hook::add('APIHandler::endpoints::users', function(string $hookName, PKPBaseController $apiController, APIHandler $apiHandler): bool {
             
-            // This allow to add a route on fly without defining a api controller
-            // Through this allow quick add/modify routes, it's better to use
-            // controller based appraoch which is more structured and understandable
+            // This allow to add a API route on to the existing entity `users` end point as
+            // BASE_URL/index.php/CONTEXT_PATH/api/v1/users/testing/routes/add/onfly
             $apiHandler->addRoute(
                 'GET',
                 'testing/routes/add/onfly',
@@ -94,6 +116,76 @@ class ApiExamplePlugin extends GenericPlugin
                 // }
             );
             
+            return Hook::CONTINUE;
+        });
+    }
+
+    /**
+     * Add a new API endpoint which not associated with any entity
+     * 
+     * This is a more manual approach using the `Dispatcher::dispatch` hook to register
+     * a completely custom api end point at plugin level. 
+     * 
+     * However, using this approach is not recommended as there is no check for path collision with
+     * existing api end points. It's better to use `APIHandler::endpoints::plugin` hook to register
+     * multiple api controllers with path collision checks.
+     * 
+     * Also as the hook `Dispatcher::dispatch` is being called before the context schema is loaded,
+     * so if the api controller being registered needs to access context schema or any context
+     * specific data, then it may lead to unexpected results.
+     * 
+     * If must use this approach, take utmost care of these aspects with proper checks and tests.
+     */
+    public function registerPluginCustomRoutes(): void
+    {
+        // Allow to have a custom API endpoint as 
+        // BASE_URL/index.php/CONTEXT_PATH/api/v1/custom-plugin-path/
+        Hook::add('Dispatcher::dispatch', function (string $hookName, array $args): bool {
+            $request = $args[0]; /** @var PKPRequest $request */
+            $router = $request->getRouter();
+
+            if (!$router instanceof APIRouter) {
+                return Hook::CONTINUE;
+            }
+
+            $requestPath = $request->getRequestPath();
+            
+            if (!str_contains($requestPath, 'custom-plugin-path')) {
+                return Hook::CONTINUE;
+            }
+
+            $controller = new CustomApiController;
+            $handler = new APIHandler($controller);
+
+            // we can get all the registered routes at this point as if need to run any more extra checks
+            // app('router')->getRoutes();
+
+            $router->setHandler($handler);
+            $handler->runRoutes();
+
+            return Hook::ABORT;
+        });
+    }
+
+    /**
+     * Add a new API endpoint which not associated with any entity
+     * 
+     * This allow to register multiple API controller at a time with checks that no plugin api has
+     * extact same handler path of `PKPBaseController::getHandlerPath()` to avoid same path collision
+     */
+    public function registerPluginApiControllers(): void
+    {
+        Hook::add('APIHandler::endpoints::plugin', function (string $hookName, APIRouter $apiRouter): bool {
+            $apiRouter->registerPluginApiControllers([
+                // Allow to have a custom API endpoint as 
+                // BASE_URL/index.php/CONTEXT_PATH/api/v1/custom-plugin-path/
+                new CustomApiController,
+
+                // Allow to have a custom ADMIN API endpoint as 
+                // BASE_URL/index.php/index/api/v1/custom-admin-plugin-path/
+                new CustomAdminApiController,
+            ]);
+
             return Hook::CONTINUE;
         });
     }
