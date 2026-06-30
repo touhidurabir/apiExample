@@ -114,5 +114,50 @@ Important point to note that `APIRouter::registerPluginApiControllers` will inte
 given path prefix and will throw exception is there is already exists one. This is done to prevent
 the plugin custom API path collision and leaking one plugins response/data to another. 
 
+## Custom plugin routes via `Dispatcher::dispatch` (advanced, not recommended)
+
+As a last-resort fallback, a plugin can register a completely custom API route by hooking into the `Dispatcher::dispatch` hook and wiring up the `APIHandler` manually. This bypasses both the entity (`APIHandler::endpoints::API_ENTITY`) and the plugin-controller (`APIHandler::endpoints::plugin`) hooks shown above.
+
+> **Only reach for this when none of the approaches above can satisfy your need.** It trades away the safety the supported hooks give you, and the failure modes can be hard to trace.
+
+See `ApiExamplePlugin::registerPluginCustomRoutes()` for the working example:
+
+```php
+use PKP\plugins\Hook;
+use PKP\core\PKPRequest;
+use PKP\core\APIRouter;
+use PKP\handler\APIHandler;
+
+Hook::add('Dispatcher::dispatch', function (string $hookName, array $args): bool {
+    $request = $args[0]; /** @var PKPRequest $request */
+    $router = $request->getRouter();
+
+    // Only act on API requests
+    if (!$router instanceof APIRouter) {
+        return Hook::CONTINUE;
+    }
+
+    // You must match the path yourself — there is no routing help here
+    if (!str_contains($request->getRequestPath(), 'custom-plugin-path')) {
+        return Hook::CONTINUE;
+    }
+
+    $controller = new CustomApiController;
+    $handler = new APIHandler($controller);
+
+    $router->setHandler($handler);
+    $handler->runRoutes();
+
+    return Hook::ABORT;
+});
+```
+
+### Why this is discouraged
+
+- **No path-collision check.** Unlike `APIRouter::registerPluginApiControllers()`, nothing verifies that your path is unique. You match the request path by hand, so you can silently shadow another plugin's (or a core) endpoint and leak one plugin's response/data into another.
+- **Runs before the context schema is (re)loaded.** `Dispatcher::dispatch` fires earlier in the request lifecycle than the API hooks — before the context schema is reloaded and before routing happens. A controller registered this way that reads the context schema or any context-specific data may see stale or incomplete data and behave unexpectedly.
+- **You bypass normal API routing.** You manually construct the `APIHandler`, attach it to the router and call `runRoutes()`, then return `Hook::ABORT` to stop further dispatch. This skips the safeguards the supported hooks provide and is easy to get subtly wrong.
+- **Possibly other surprises.** Because it sidesteps the normal flow, this approach *may* produce other hard-to-diagnose behaviour (not necessarily, but it is not guaranteed safe). Prefer `APIHandler::endpoints::plugin`; only use `Dispatcher::dispatch` if you truly have no other option, and then test thoroughly.
+
 ## License
 [MIT](./LICENSE.md)
